@@ -11,21 +11,17 @@ import lejos.hardware.sensor.SensorMode;
 import lejos.robotics.RegulatedMotor;
 import lejos.utility.Delay;
 
-public class LineFollower extends Thread {
+public class Motors extends Thread {
 	private DataExchange de;
+	private double turningSpeedPercentage = 0.3;
+	private float lowerColorTreshold = 0.12f;
+	private float upperColorThreshold = 0.17f;
 
-	private boolean isStopped = false;
 	private final int maxMotorSpeed = 300;
 
-	public boolean isStopped() {
-		return isStopped;
-	}
 
-	public void setStopped(boolean isStopped) {
-		this.isStopped = isStopped;
-	}
 
-	public LineFollower(DataExchange de) {
+	public Motors(DataExchange de) {
 		this.de = de;
 
 	}
@@ -33,51 +29,39 @@ public class LineFollower extends Thread {
 	@Override
 	public void run() {
 		// Initialize motors, sensors and screen
-		System.out.println("Line follower");
 		RegulatedMotor rightMotor = Motor.A;
 		RegulatedMotor leftMotor = Motor.B;
-		EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S4);
-		EV3 ev3 = (EV3) BrickFinder.getLocal();
-		TextLCD lcd = ev3.getTextLCD();
 
-		// Initialize sampleFetcher
-		float redSample[];
-		SensorMode redMode = colorSensor.getRedMode();
-		redSample = new float[redMode.sampleSize()];
 
-		// Hard-coded values
-
+		// setting the initial speed
 		rightMotor.setSpeed(maxMotorSpeed);
 		leftMotor.setSpeed(maxMotorSpeed);
-		float lowerColorTreshold = 0.12f;
-		float upperColorThreshold = 0.17f;
+
 
 		// Start moving the robot
 		rightMotor.forward();
 		leftMotor.forward();
 
-		double turningSpeedPercentage = 0.3;
+		
 
 		while (true) {
-			if (de.getCommand() == 2) {
+			if (de.getCommand() == Command.KILLSWITCH) {
 				break;
 			}
 
 			// Output sample data
 
-			if (de.getCommand() == 1) {
-				redMode.fetchSample(redSample, 0);
-				System.out.println("Sample: " + redSample[0]);
+			if (de.getCommand() == Command.LINE) {
 				leftMotor.forward();
 				rightMotor.forward();
 
 
-				if (redSample[0] < lowerColorTreshold) {
+				if (de.getColorIntensity() < lowerColorTreshold) {
 
 					leftMotor.setSpeed(maxMotorSpeed);
 					rightMotor.setSpeed((int) Math.floor(maxMotorSpeed * turningSpeedPercentage));
 
-				} else if (redSample[0] > upperColorThreshold) {
+				} else if (de.getColorIntensity() > upperColorThreshold) {
 
 					rightMotor.setSpeed(maxMotorSpeed);
 					leftMotor.setSpeed((int) Math.floor(maxMotorSpeed * turningSpeedPercentage));
@@ -85,7 +69,7 @@ public class LineFollower extends Thread {
 					rightMotor.setSpeed(maxMotorSpeed);
 					leftMotor.setSpeed(maxMotorSpeed);
 				}
-			} else if (de.getCommand() == 0) {
+			} else if (de.getCommand() == Command.AVOID) {
 
 				// Move robot left for 1,8sec
 				leftMotor.setSpeed(150);
@@ -102,7 +86,7 @@ public class LineFollower extends Thread {
 				leftMotor.forward();
 				rightMotor.forward();
 
-				Delay.msDelay(100);
+				Delay.msDelay(1000);
 				
 
 				// Move robot right for 2sec
@@ -120,19 +104,23 @@ public class LineFollower extends Thread {
 				rightMotor.setSpeed(200);
 				leftMotor.forward();
 				rightMotor.forward();
+				
+				
 				while (!isOnLine) {
-					redMode.fetchSample(redSample, 0);
-					if (redSample[0] < lowerColorTreshold) {
+					if (de.getColorIntensity() < lowerColorTreshold) {
 						isOnLine = true;
 					}
 				}
+				
+				System.out.println("Seen black");
+				
 				Delay.msDelay(100);
 				while (isOnLine) {
-					redMode.fetchSample(redSample, 0);
-					if (redSample[0] > upperColorThreshold) {
+					if (de.getColorIntensity() > upperColorThreshold) {
 						isOnLine = false;
 					}
 				}
+				System.out.println("Seen white");
 
 				Delay.msDelay(100);
 
@@ -144,7 +132,7 @@ public class LineFollower extends Thread {
 				Delay.msDelay(300);
 				
 				System.out.println("SWITCHING TO LINE FOLLOWER...");
-				de.setCommand(1);
+				de.setObstacleDetected(false);
 				
 
 			} else {
@@ -158,13 +146,9 @@ public class LineFollower extends Thread {
 			}
 		}
 
-		System.out.println("END OF CODE...");
+		System.out.println("END OF LINE FOLLOWER...");
 		rightMotor.stop();
 		leftMotor.stop();
-		colorSensor.close();
-		de.setKilled(true);
-//		leftMotor.stop();
-//		rightMotor.stop();
-//		colorSensor.close();
+		
 	}
 }

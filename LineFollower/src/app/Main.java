@@ -2,9 +2,6 @@ package app;
 
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
-import lejos.hardware.motor.*;
-import lejos.hardware.port.*;
-import lejos.utility.Delay;
 
 public class Main {
 
@@ -17,14 +14,20 @@ public class Main {
         Sound.beepSequenceUp();   // make sound when ready.
         Button.waitForAnyPress();
 		
-		
+		ColorSensor cs = new ColorSensor(de);
 		ObstacleDetector od = new ObstacleDetector(de);
-		LineFollower line = new LineFollower(de);
+		Motors motors = new Motors(de);
+		
+		// starting all the threads
+		cs.start();
 		od.start();
-		line.start();
-		while (!de.isKilled()) {
+		de.start();
+		motors.start();
+		
+		// kill switch
+		while (de.getCommand() != Command.KILLSWITCH) {
 		Button.waitForAnyPress();
-		de.setCommand(2);
+		de.setCommand(Command.KILLSWITCH);
 		}
 		
 	}
