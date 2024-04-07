@@ -33,6 +33,13 @@ public class Motors extends Thread {
 		RegulatedMotor leftMotor = Motor.B;
 
 
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		// setting the initial speed
 		rightMotor.setSpeed(maxMotorSpeed);
 		leftMotor.setSpeed(maxMotorSpeed);

@@ -34,6 +34,7 @@ public class DataExchange extends Thread{
 	
 	public void run() {
 		
+		System.out.println("Data exchange start");
 		while (getCommand() != Command.KILLSWITCH) {
 			
 			
@@ -50,22 +51,27 @@ public class DataExchange extends Thread{
 				if (obstaclesDetectedNum < 1) {
 					startTime = System.currentTimeMillis();
 				}
-				if (obstaclesDetectedNum >= obstacleAmount) {
-					obstaclesDetectedNum = 0;
-					endTime = System.currentTimeMillis();
-					long timeTaken = startTime - endTime;
-					
-					SimpleDateFormat obj = new SimpleDateFormat("dd MMM yyyy HH:mm:ss:SSS Z");     
-	                Date res = new Date(timeTaken);   
-					
-					System.out.println(obj.format(res));
-				}
+				
 				
 				if (!obstacleDetected) { // checks to avoid continuous printing
 					System.out.println("Obstactle detected!");
+					
+					
+					
+					if (obstaclesDetectedNum >= obstacleAmount) {
+						obstaclesDetectedNum = 0;
+						endTime = System.currentTimeMillis();
+						long timeTaken = endTime - startTime;
+						
+						SimpleDateFormat obj = new SimpleDateFormat("mm:ss:SSS");     
+		                Date res = new Date(timeTaken);   
+						
+						System.out.println(obj.format(res));
+					}
+					obstaclesDetectedNum++;
 				}
 				obstacleDetected = true;
-				obstaclesDetectedNum++;
+				
 				
 			}
 			
