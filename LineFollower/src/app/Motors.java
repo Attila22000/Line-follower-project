@@ -17,7 +17,7 @@ public class Motors extends Thread {
 	private float lowerColorTreshold = 0.12f;
 	private float upperColorThreshold = 0.17f;
 
-	private final int maxMotorSpeed = 300;
+	private int maxMotorSpeed = 300;
 
 
 
@@ -52,6 +52,11 @@ public class Motors extends Thread {
 		
 
 		while (true) {
+			
+			
+			
+			
+			
 			if (de.getCommand() == Command.KILLSWITCH) {
 				break;
 			}
@@ -59,6 +64,13 @@ public class Motors extends Thread {
 			// Output sample data
 
 			if (de.getCommand() == Command.LINE) {
+				turningSpeedPercentage = de.getTurningSpeedPercentage();
+				lowerColorTreshold = de.getLowerColorTreshold();
+				upperColorThreshold = de.getUpperColorThreshold();
+				maxMotorSpeed = de.getMaxMotorSpeed();
+				
+				
+				
 				leftMotor.forward();
 				rightMotor.forward();
 

@@ -1,5 +1,10 @@
 package app;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,6 +21,11 @@ public class DataExchange extends Thread{
 	private boolean isKilled = false;
 	private int obstacleAmount = 1;
 	private int obstaclesDetectedNum = 0;
+	private double turningSpeedPercentage = 0.3;
+	private float lowerColorTreshold = 0.12f;
+	private float upperColorThreshold = 0.17f;
+
+	private int maxMotorSpeed = 300;
 	
 	
 	
@@ -30,12 +40,60 @@ public class DataExchange extends Thread{
 	long startTime = 0;
 	long endTime = 0;
 
-	
+	private void getData() {
+		URL url = null;
+  		HttpURLConnection conn = null;
+  		InputStreamReader isr = null;
+  		BufferedReader br=null;
+
+  		String s=null;
+		try {
+			url = new URL("http://192.168.84.5:8080/rest/lego/getvalues");
+			conn = (HttpURLConnection)url.openConnection();
+
+			InputStream is=null;
+			try {
+				is=conn.getInputStream();
+			}
+			catch (Exception e) {
+	  			System.out.println("Exception conn.getInputSteam()");
+	  			e.printStackTrace();
+	            System.out.println("Cannot get InputStream!");
+			}
+			isr = new InputStreamReader(is);
+      		br=new BufferedReader(isr);
+
+      		String data = br.readLine();
+      		System.out.println(data);
+      		String dataVals[] = data.split("#");
+      		int maxSpeed = Integer.parseInt(dataVals[0]);
+      		double turningPercentage = Double.parseDouble(dataVals[1]);
+      		float lowerThresh = Float.parseFloat(dataVals[2]);
+      		float upperThresh = Float.parseFloat(dataVals[3]);
+      		System.out.println(maxSpeed);
+      		System.out.println(turningPercentage);
+      		System.out.println(lowerThresh);
+      		System.out.println(upperThresh);
+      		System.out.println("End of data");
+      		
+      		maxMotorSpeed = maxSpeed;
+      		turningSpeedPercentage = turningPercentage;
+      		lowerColorTreshold = lowerThresh;
+      		upperColorThreshold = upperThresh;
+		}
+  		catch(Exception e) {
+  			e.printStackTrace();
+            System.out.println("Some problem!");
+  		}
+	}
 	
 	public void run() {
 		
 		System.out.println("Data exchange start");
 		while (getCommand() != Command.KILLSWITCH) {
+			
+			// adjusting the data from the data given from the server
+			getData();
 			
 			
 			// line follower switching logic
@@ -116,6 +174,39 @@ public class DataExchange extends Thread{
 	}
 	public void setObstacleDetected(boolean obstacleDetected) {
 		this.obstacleDetected = obstacleDetected;
+	}
+
+	public double getTurningSpeedPercentage() {
+		return turningSpeedPercentage;
+	}
+
+	public void setTurningSpeedPercentage(double turningSpeedPercentage) {
+		this.turningSpeedPercentage = turningSpeedPercentage;
+	}
+
+	public float getLowerColorTreshold() {
+		return lowerColorTreshold;
+	}
+
+	public void setLowerColorTreshold(float lowerColorTreshold) {
+		this.lowerColorTreshold = lowerColorTreshold;
+	}
+
+	public float getUpperColorThreshold() {
+		return upperColorThreshold;
+	}
+
+
+	public void setUpperColorThreshold(float upperColorThreshold) {
+		this.upperColorThreshold = upperColorThreshold;
+	}
+
+	public int getMaxMotorSpeed() {
+		return maxMotorSpeed;
+	}
+
+	public void setMaxMotorSpeed(int maxMotorSpeed) {
+		this.maxMotorSpeed = maxMotorSpeed;
 	}
 	
 	
