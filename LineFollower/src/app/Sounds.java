@@ -16,6 +16,7 @@ public class Sounds extends Thread{
 			
 			if (de.isObstacleDetected()) {
 				Sound.playSample(new File("epix_sax.wav"));
+				System.out.println("End of song...");
 			} 
 			
 		Delay.msDelay(50);

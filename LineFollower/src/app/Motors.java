@@ -89,7 +89,9 @@ public class Motors extends Thread {
 					leftMotor.setSpeed(maxMotorSpeed);
 				}
 			} else if (de.getCommand() == Command.AVOID) {
-
+				System.out.println("START OF OBSTACLE AVOIDANCE ALGORITHM");
+//				de.setObstacleDetected(true);
+				
 				// Move robot left for 1,8sec
 				leftMotor.setSpeed(150);
 				rightMotor.setSpeed(300);
@@ -124,20 +126,25 @@ public class Motors extends Thread {
 				leftMotor.forward();
 				rightMotor.forward();
 				
-				
+				long startTime = System.currentTimeMillis();
+				long timeout = 10000;
+				long currTime = System.currentTimeMillis();
 				while (!isOnLine) {
-					if (de.getColorIntensity() < lowerColorTreshold) {
+					if (de.getColorIntensity() < lowerColorTreshold || currTime - startTime > timeout) {
 						isOnLine = true;
 					}
+					currTime = System.currentTimeMillis();
 				}
 				
 				System.out.println("Seen black");
 				
 				Delay.msDelay(100);
 				while (isOnLine) {
-					if (de.getColorIntensity() > upperColorThreshold) {
+					if (de.getColorIntensity() > upperColorThreshold || currTime - startTime > timeout) {
 						isOnLine = false;
+						
 					}
+					currTime = System.currentTimeMillis();
 				}
 				System.out.println("Seen white");
 
@@ -150,8 +157,9 @@ public class Motors extends Thread {
 				
 				Delay.msDelay(300);
 				
-				System.out.println("SWITCHING TO LINE FOLLOWER...");
-				de.setObstacleDetected(false);
+				System.out.println("END OF OBSTACLE AVOIDANCE...");
+//				de.setObstacleDetected(false);
+				de.setCommand(Command.LINE);
 				
 
 			} else {
